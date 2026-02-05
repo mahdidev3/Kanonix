@@ -1,0 +1,26 @@
+from fastapi import APIRouter, Depends
+from sqlalchemy import select
+
+from app.api.deps import require_role
+from app.db.session import DbSession
+from app.models.entities import CouncilMember, Role
+from app.services.tenant import resolve_tenant
+
+router = APIRouter(prefix="/councils", tags=["councils"])
+
+
+@router.get("")
+async def list_members(session: DbSession, current: bool | None = None, kanoon=Depends(resolve_tenant)):
+    query = select(CouncilMember).where(CouncilMember.kanoon_id == kanoon.id)
+    if current is not None:
+        query = query.where(CouncilMember.is_current == current)
+    return (await session.scalars(query)).all()
+
+
+@router.post("")
+async def create_member(payload: dict, session: DbSession, _=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
+    member = CouncilMember(kanoon_id=kanoon.id, **payload)
+    session.add(member)
+    await session.commit()
+    await session.refresh(member)
+    return member
