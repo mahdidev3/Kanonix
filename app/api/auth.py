@@ -3,10 +3,9 @@ from datetime import datetime, timezone
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.db.session import get_session
+from app.db.session import DbSession
 from app.models.entities import User
 from app.schemas.auth import LoginIn, RegisterIn, TokenOut
 from app.services.security import create_token, hash_password, verify_password
@@ -18,7 +17,7 @@ logger = structlog.get_logger()
 
 
 @router.post("/register", response_model=TokenOut)
-async def register(payload: RegisterIn, request: Request, session: AsyncSession = Depends(get_session), kanoon=Depends(resolve_tenant)):
+async def register(payload: RegisterIn, request: Request, session: DbSession, kanoon=Depends(resolve_tenant)):
     await rate_limit(request, "auth-register")
     existing = await session.scalar(select(User).where(User.email == payload.email))
     if existing:
@@ -39,7 +38,7 @@ async def register(payload: RegisterIn, request: Request, session: AsyncSession 
 
 
 @router.post("/login", response_model=TokenOut)
-async def login(payload: LoginIn, request: Request, session: AsyncSession = Depends(get_session), kanoon=Depends(resolve_tenant)):
+async def login(payload: LoginIn, request: Request, session: DbSession, kanoon=Depends(resolve_tenant)):
     await rate_limit(request, "auth-login")
     user = await session.scalar(select(User).where(User.email == payload.email, User.kanoon_id == kanoon.id))
     if not user or not verify_password(payload.password, user.password_hash):

@@ -2,10 +2,9 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_role
-from app.db.session import get_session
+from app.db.session import DbSession
 from app.models.entities import AuditLog, Event, EventType, MarketBoothRequest, Role
 from app.services.tenant import resolve_tenant
 
@@ -13,7 +12,7 @@ router = APIRouter(prefix="/market", tags=["market"])
 
 
 @router.post("/booth")
-async def create_booth_request(payload: dict, session: AsyncSession = Depends(get_session), user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
+async def create_booth_request(payload: dict, session: DbSession, user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
     event = await session.get(Event, payload["event_id"])
     if not event or event.kanoon_id != kanoon.id or event.event_type != EventType.MARKET:
         raise HTTPException(status_code=400, detail="Invalid market event")
@@ -29,7 +28,7 @@ async def create_booth_request(payload: dict, session: AsyncSession = Depends(ge
 
 
 @router.patch("/booth/{request_id}")
-async def approve_or_reject(request_id: int, payload: dict, session: AsyncSession = Depends(get_session), admin=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
+async def approve_or_reject(request_id: int, payload: dict, session: DbSession, admin=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
     req = await session.scalar(select(MarketBoothRequest).where(MarketBoothRequest.id == request_id, MarketBoothRequest.kanoon_id == kanoon.id))
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")

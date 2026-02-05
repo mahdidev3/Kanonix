@@ -1,13 +1,13 @@
 from fastapi import Header, HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
+from app.db.session import DbSession
 from app.models.entities import Kanoon
 
 
 async def resolve_tenant(
-    session: AsyncSession,
+    session: DbSession,
     x_kanoon_slug: str | None = Header(default=None, alias=get_settings().tenant_header),
 ) -> Kanoon:
     if not x_kanoon_slug:
