@@ -1,0 +1,11 @@
+{
+  "name": "kanonix-backend-tools",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up --build",
+    "prod": "docker compose up --build api-prod",
+    "migrate": "docker compose run --rm api alembic upgrade head",
+    "seed": "docker compose run --rm api python scripts/seed.py",
+    "test": "pytest"
+  }
+}
