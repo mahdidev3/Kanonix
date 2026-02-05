@@ -14,6 +14,7 @@ import { GalleryDetailPage } from '@/pages/gallery/GalleryDetailPage';
 import { AdminPage } from '@/pages/admin/AdminPage';
 import { UiPreviewPage } from '@/pages/ui-preview/UiPreviewPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { AdminRoute, UiPreviewRoute } from '@/routes/RouteGuards';
 
 export const router = createBrowserRouter([
   {
@@ -28,8 +29,8 @@ export const router = createBrowserRouter([
       { path: 'checkout/:type/:id', element: <CheckoutPage /> },
       { path: 'gallery', element: <GalleryListPage /> },
       { path: 'gallery/:id', element: <GalleryDetailPage /> },
-      { path: 'admin', element: <AdminPage /> },
-      { path: 'ui-preview', element: <UiPreviewPage /> },
+      { path: 'admin', element: <AdminRoute><AdminPage /></AdminRoute> },
+      { path: 'ui-preview', element: <UiPreviewRoute><UiPreviewPage /></UiPreviewRoute> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

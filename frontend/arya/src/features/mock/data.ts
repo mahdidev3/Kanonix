@@ -69,6 +69,7 @@ export const mockProfile: UserProfile = {
   phone: '09120000000',
   collaboration: 'فعال در تیم رسانه',
   attendedEventIds: [3],
+  role: 'user',
 };
 
 export const mockReports = [
