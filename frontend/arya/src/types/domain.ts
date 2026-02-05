@@ -37,4 +37,5 @@ export interface UserProfile {
   phone: string;
   collaboration: string;
   attendedEventIds: number[];
+  role?: 'user' | 'admin' | 'superadmin';
 }
