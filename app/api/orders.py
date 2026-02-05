@@ -3,10 +3,9 @@ from datetime import datetime, timedelta, timezone
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_role
-from app.db.session import get_session
+from app.db.session import DbSession
 from app.models.entities import AuditLog, Event, EventType, Order, OrderStatus, Role, Seat, SeatReservation
 from app.services.pricing import trip_final_price
 from app.services.tenant import resolve_tenant
@@ -16,7 +15,7 @@ logger = structlog.get_logger()
 
 
 @router.post("/reserve-seat")
-async def reserve_seat(payload: dict, session: AsyncSession = Depends(get_session), user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
+async def reserve_seat(payload: dict, session: DbSession, user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
     event = await session.get(Event, payload["event_id"])
     if not event or event.kanoon_id != kanoon.id or event.event_type != EventType.FESTIVAL:
         raise HTTPException(status_code=400, detail="Invalid festival event")
@@ -37,7 +36,7 @@ async def reserve_seat(payload: dict, session: AsyncSession = Depends(get_sessio
 
 
 @router.post("/trip")
-async def create_trip_order(payload: dict, session: AsyncSession = Depends(get_session), user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
+async def create_trip_order(payload: dict, session: DbSession, user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
     event = await session.get(Event, payload["event_id"])
     if not event or event.event_type != EventType.TRIP or event.kanoon_id != kanoon.id:
         raise HTTPException(status_code=400, detail="Invalid trip event")
@@ -53,7 +52,7 @@ async def create_trip_order(payload: dict, session: AsyncSession = Depends(get_s
 
 
 @router.post("/{order_id}/pay-mock")
-async def pay_mock(order_id: int, session: AsyncSession = Depends(get_session), user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
+async def pay_mock(order_id: int, session: DbSession, user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
     order = await session.scalar(select(Order).where(Order.id == order_id, Order.user_id == user.id, Order.kanoon_id == kanoon.id))
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -64,7 +63,7 @@ async def pay_mock(order_id: int, session: AsyncSession = Depends(get_session), 
 
 
 @router.post("/admin/release-expired")
-async def release_expired(session: AsyncSession = Depends(get_session), _=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
+async def release_expired(session: DbSession, _=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
     expired = (await session.scalars(select(SeatReservation).join(Order, Order.id == SeatReservation.order_id).where(SeatReservation.kanoon_id == kanoon.id, SeatReservation.expires_at < datetime.now(timezone.utc), Order.status == OrderStatus.pending))).all()
     ids = [res.id for res in expired]
     for res in expired:

@@ -1,10 +1,9 @@
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user, require_role
-from app.db.session import get_session
+from app.db.session import DbSession
 from app.models.entities import AuditLog, Event, EventState, EventType, Role
 from app.schemas.event import EventIn
 from app.services.tenant import resolve_tenant
@@ -14,7 +13,7 @@ logger = structlog.get_logger()
 
 
 @router.post("")
-async def create_event(payload: EventIn, session: AsyncSession = Depends(get_session), user=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
+async def create_event(payload: EventIn, session: DbSession, user=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
     event = Event(kanoon_id=kanoon.id, **payload.model_dump())
     session.add(event)
     session.add(AuditLog(kanoon_id=kanoon.id, actor_user_id=user.id, action="event_created", detail=payload.model_dump(), created_at=event.starts_at))
@@ -26,7 +25,7 @@ async def create_event(payload: EventIn, session: AsyncSession = Depends(get_ses
 
 @router.get("")
 async def list_events(
-    session: AsyncSession = Depends(get_session),
+    session: DbSession,
     kanoon=Depends(resolve_tenant),
     event_type: EventType | None = None,
     state: EventState | None = None,
@@ -45,7 +44,7 @@ async def list_events(
 
 
 @router.patch("/{event_id}")
-async def update_event(event_id: int, payload: dict, session: AsyncSession = Depends(get_session), user=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
+async def update_event(event_id: int, payload: dict, session: DbSession, user=Depends(require_role(Role.admin, Role.superadmin)), kanoon=Depends(resolve_tenant)):
     event = await session.scalar(select(Event).where(Event.id == event_id, Event.kanoon_id == kanoon.id))
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")

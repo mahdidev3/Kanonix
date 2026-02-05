@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_user
-from app.db.session import get_session
+from app.db.session import DbSession
 from app.models.entities import Event, Order, OrderStatus, Review
 from app.services.tenant import resolve_tenant
 
@@ -11,7 +10,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 
 
 @router.post("")
-async def create_review(payload: dict, session: AsyncSession = Depends(get_session), user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
+async def create_review(payload: dict, session: DbSession, user=Depends(get_current_user), kanoon=Depends(resolve_tenant)):
     event = await session.scalar(select(Event).where(Event.id == payload["event_id"], Event.kanoon_id == kanoon.id))
     if not event:
         raise HTTPException(status_code=404, detail="Event missing")
