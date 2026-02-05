@@ -8,7 +8,9 @@ from app.models.entities import Kanoon
 
 async def resolve_tenant(
     session: DbSession,
-    x_kanoon_slug: str | None = Header(default=None, alias=get_settings().tenant_header),
+    x_kanoon_slug: str | None = Header(
+        default=None, alias=get_settings().tenant_header
+    ),
 ) -> Kanoon:
     if not x_kanoon_slug:
         raise HTTPException(status_code=400, detail="Missing tenant header")
