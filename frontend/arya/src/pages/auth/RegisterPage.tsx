@@ -1,6 +1,8 @@
 export const RegisterPage = () => (
-  <form className="card grid">
-    <h1>ثبت‌نام</h1>
+  <form className="card auth-card form-grid">
+    <span className="badge">عضویت جدید</span>
+    <h1 className="page-title">ثبت‌نام</h1>
+    <p>پروفایل خودت را بساز تا به رویدادها دسترسی داشته باشی.</p>
     <label>نام و نام خانوادگی<input /></label>
     <label>شماره موبایل<input /></label>
     <label>رمز عبور<input type="password" /></label>

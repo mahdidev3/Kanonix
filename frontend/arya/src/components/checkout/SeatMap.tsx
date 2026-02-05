@@ -4,7 +4,7 @@ export const SeatMap = ({ seats }: { seats: Seat[] }) => (
   <div className="seat-grid">
     {seats.map((seat) => (
       <div key={seat.id} className={`seat ${seat.status}`}>
-        {seat.id}
+        <strong>{seat.id}</strong>
         <div>{seat.gender === 'male' ? 'آقا' : seat.gender === 'female' ? 'خانم' : 'آزاد'}</div>
       </div>
     ))}

@@ -10,7 +10,10 @@ export const ReportsTable = ({ reports }: { reports: Array<{ name: string; total
 
   return (
     <div className="card">
-      <button className="btn btn-primary" onClick={handleExport}>خروجی CSV</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.6rem' }}>
+        <h3>گزارش مالی</h3>
+        <button className="btn btn-secondary" onClick={handleExport}>خروجی CSV</button>
+      </div>
       <table className="table">
         <thead><tr><th>گزارش</th><th>درآمد</th><th>ثبت‌نام</th></tr></thead>
         <tbody>

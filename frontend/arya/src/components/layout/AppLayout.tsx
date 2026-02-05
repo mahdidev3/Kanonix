@@ -15,10 +15,10 @@ export const AppLayout = () => (
   <div className="layout">
     <header className="header">
       <div className="container nav">
-        <strong>{tenantConfig.name}</strong>
-        <nav style={{ display: 'flex', gap: '.8rem', flexWrap: 'wrap' }}>
+        <strong className="brand"><span className="brand-mark" />{tenantConfig.name}</strong>
+        <nav className="nav-links">
           {links.map(([to, label]) => (
-            <Link key={to} to={to}>
+            <Link key={to} to={to} className="nav-link">
               {label}
             </Link>
           ))}
@@ -29,7 +29,7 @@ export const AppLayout = () => (
       <Outlet />
     </main>
     <footer className="footer">
-      <div className="container muted">
+      <div className="container muted" style={{ padding: '.95rem 0' }}>
         {tenantConfig.contact.phone} | {tenantConfig.contact.email} | {tenantConfig.contact.instagram}
       </div>
     </footer>
